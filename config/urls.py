@@ -1,6 +1,6 @@
 
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 
 from farmacia.views import home_view, insumos_view
 from farmacia.views import (
@@ -13,7 +13,15 @@ from farmacia.views import (
     eliminar_carrito_view,
     confirmar_carrito_view,
     pago_view,
-    logout_view
+    logout_view,
+    registro_view,
+    gestor_view,
+    crear_insumo_view,
+    editar_insumo_view,
+    eliminar_insumo_view,
+    gestor_cambiar_estado_view,
+    mis_solicitudes_web_view
+    
 )
 
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -32,6 +40,39 @@ urlpatterns = [
     path('carrito/', carrito_view, name='carrito'),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
+    path('registro/', registro_view, name='registro'),
+    path('gestor/', gestor_view, name='gestor'),
+    
+
+    path(
+    'gestor/nuevo/',
+    crear_insumo_view,
+    name='crear-insumo'
+),
+    path(
+    'gestor/editar/<int:insumo_id>/',
+    editar_insumo_view,
+    name='editar-insumo'
+),
+
+    path(
+    'gestor/eliminar/<int:insumo_id>/',
+    eliminar_insumo_view,
+    name='eliminar-insumo'
+),
+
+    path(
+    'gestor/solicitud/<int:solicitud_id>/estado/',
+    gestor_cambiar_estado_view,
+    name='gestor-cambiar-estado'
+),
+
+    re_path(
+    r'^mis-solicitudes/?$',
+    mis_solicitudes_web_view,
+    name='mis-solicitudes-web'
+),
+
     path(
     'carrito/agregar/<int:insumo_id>/',
     agregar_carrito_view,
@@ -86,3 +127,5 @@ urlpatterns = [
         name='swagger-ui'
     ),
 ]
+
+handler404 = 'farmacia.views.error_404_view'

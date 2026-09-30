@@ -1,0 +1,141 @@
+{% extends "farmacia/base.html" %}
+
+{% block title %}Mis solicitudes - Farmacia{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+```
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h1>Mis solicitudes</h1>
+
+        <p class="text-muted mb-0">
+            Historial de solicitudes realizadas.
+        </p>
+    </div>
+
+    <a href="/" class="btn btn-outline-secondary">
+        Volver al inicio
+    </a>
+
+</div>
+
+{% if solicitudes %}
+
+    {% for datos in solicitudes %}
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-header">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <strong>
+                        Solicitud #{{ datos.solicitud.id }}
+                    </strong>
+
+                    <span class="badge bg-primary">
+                        {{ datos.solicitud.get_estado_display }}
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="card-body">
+
+                <p>
+                    <strong>Fecha:</strong>
+                    {{ datos.solicitud.created_at|date:"d/m/Y H:i" }}
+                </p>
+
+                <p>
+                    <strong>Método de pago:</strong>
+
+                    {% if datos.solicitud.metodo_pago %}
+                        {{ datos.solicitud.get_metodo_pago_display }}
+                    {% else %}
+                        No registrado
+                    {% endif %}
+
+                </p>
+
+                <h5 class="mt-4">
+                    Productos
+                </h5>
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered">
+
+                        <thead>
+                            <tr>
+                                <th>Insumo</th>
+                                <th>Cantidad</th>
+                                <th>Precio unitario</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for item in datos.items %}
+
+                                <tr>
+
+                                    <td>
+                                        {{ item.insumo.commercial_name }}
+                                    </td>
+
+                                    <td>
+                                        {{ item.quantity }}
+                                    </td>
+
+                                    <td>
+                                        ${{ item.unit_price }}
+                                    </td>
+
+                                    <td>
+                                        ${{ item.subtotal }}
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div class="text-end mt-3">
+
+                    <strong>
+                        Total de la solicitud:
+                        ${{ datos.total }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    {% endfor %}
+
+{% else %}
+
+    <div class="alert alert-info">
+        Aún no tienes solicitudes realizadas.
+    </div>
+
+{% endif %}
+```
+
+</div>
+
+{% endblock %}

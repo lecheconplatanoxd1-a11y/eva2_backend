@@ -1,0 +1,217 @@
+{% extends "farmacia/base.html" %}
+
+{% block title %}Editar insumo - Farmacia{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+```
+<div class="col-md-8">
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <h1 class="mb-4">
+                Editar insumo
+            </h1>
+
+            <p class="text-muted">
+                Modifica la información del insumo seleccionado.
+            </p>
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                <div class="mb-3">
+
+                    <label for="commercial_name" class="form-label">
+                        Nombre comercial
+                    </label>
+
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="commercial_name"
+                        name="commercial_name"
+                        value="{{ insumo.commercial_name }}"
+                        required
+                    >
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label for="active_ingredient" class="form-label">
+                        Principio activo
+                    </label>
+
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="active_ingredient"
+                        name="active_ingredient"
+                        value="{{ insumo.active_ingredient }}"
+                    >
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label for="lot" class="form-label">
+                        Lote
+                    </label>
+
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="lot"
+                        name="lot"
+                        value="{{ insumo.lot }}"
+                        required
+                    >
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label for="expiration_date" class="form-label">
+                        Fecha de vencimiento
+                    </label>
+
+                    <input
+                        type="date"
+                        class="form-control"
+                        id="expiration_date"
+                        name="expiration_date"
+                        value="{{ insumo.expiration_date|date:'Y-m-d' }}"
+                        required
+                    >
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label for="unit_price_per_box" class="form-label">
+                        Precio por caja
+                    </label>
+
+                    <input
+                        type="number"
+                        class="form-control"
+                        id="unit_price_per_box"
+                        name="unit_price_per_box"
+                        value="{{ insumo.unit_price_per_box }}"
+                        step="0.01"
+                        min="0"
+                        required
+                    >
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label for="stock" class="form-label">
+                        Stock
+                    </label>
+
+                    <input
+                        type="number"
+                        class="form-control"
+                        id="stock"
+                        name="stock"
+                        value="{{ insumo.stock }}"
+                        min="0"
+                        required
+                    >
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label for="tipo" class="form-label">
+                        Tipo de insumo
+                    </label>
+
+                    <select
+                        class="form-select"
+                        id="tipo"
+                        name="tipo"
+                        required
+                    >
+
+                        {% for value, label in tipos %}
+
+                        <option
+                            value="{{ value }}"
+                            {% if insumo.tipo == value %}selected{% endif %}
+                        >
+                            {{ label }}
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="mb-4">
+
+                    <label for="category" class="form-label">
+                        Categoría
+                    </label>
+
+                    <select
+                        class="form-select"
+                        id="category"
+                        name="category"
+                        required
+                    >
+
+                        {% for category in categories %}
+
+                        <option
+                            value="{{ category.id }}"
+                            {% if insumo.category_id == category.id %}selected{% endif %}
+                        >
+                            {{ category.name }}
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="d-flex gap-2">
+
+                    <a
+                        href="/gestor/"
+                        class="btn btn-secondary"
+                    >
+                        Cancelar
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Guardar cambios
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+```
+
+</div>
+
+{% endblock %}

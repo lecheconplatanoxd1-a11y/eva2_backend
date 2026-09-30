@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-1d#4^+gth&du8$tdvqsx7y&h@p-vlfh4t4*(foiaey4z^v4g0v'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 
 # Application definition
@@ -158,3 +158,6 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'API para pedidos de insumos médicos y farmacia.',
     'VERSION': '1.0.0',
 }
+
+
+LOGIN_URL = "/login/"

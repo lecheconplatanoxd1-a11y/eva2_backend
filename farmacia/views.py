@@ -60,6 +60,7 @@ class InsumoViewSet(viewsets.ModelViewSet):
     queryset = Insumo.objects.all()
     serializer_class = InsumoSerializer
 
+
     filterset_fields = [
         "tipo",
         "category",
@@ -144,6 +145,9 @@ class SolicitudViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Solicitud.objects.all()
     serializer_class = SolicitudSerializer
+    filterset_fields = [
+        "estado",
+    ]
     permission_classes = [EsInstitucion]
 
     def get_queryset(self):
@@ -291,6 +295,80 @@ class SolicitudViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
+@login_required
+def gestor_cambiar_estado_view(request, solicitud_id):
+    """
+Permite al gestor cambiar el estado de una solicitud
+desde la interfaz web.
+
+    ```
+Si una solicitud PAGADA pasa a CANCELADA,
+se devuelve el stock de sus productos.
+    """
+
+    if not hasattr(request.user, "perfil"):
+        return redirect("/")
+
+    if request.user.perfil.rol != Perfil.Rol.GESTOR:
+        return redirect("/")
+
+    if request.method != "POST":
+        return redirect("/gestor/")
+
+    nuevo_estado = request.POST.get("estado")
+
+    estados_validos = [
+        Solicitud.Estado.PENDIENTE,
+        Solicitud.Estado.PAGADO,
+        Solicitud.Estado.ENTREGADO,
+        Solicitud.Estado.CANCELADO,
+]
+
+    if nuevo_estado not in estados_validos:
+        return redirect("/gestor/")
+
+    with transaction.atomic():
+
+        solicitud = (
+        Solicitud.objects
+        .select_for_update()
+        .get(pk=solicitud_id)
+        )
+
+        estado_anterior = solicitud.estado
+
+        if (
+        nuevo_estado == Solicitud.Estado.CANCELADO
+        and estado_anterior != Solicitud.Estado.CANCELADO
+        ):
+
+            if estado_anterior == Solicitud.Estado.PAGADO:
+
+                for item in solicitud.items.select_related("insumo"):
+
+                    insumo = (
+                    Insumo.objects
+                    .select_for_update()
+                    .get(pk=item.insumo.id)
+                )
+
+                insumo.stock += item.quantity
+
+                insumo.save(
+                    update_fields=["stock"]
+                )
+
+        solicitud.estado = nuevo_estado
+
+        solicitud.save(
+        update_fields=["estado"]
+    )
+
+        return redirect("/gestor/")
+
+
+
+
 class ItemSolicitudViewSet(viewsets.ModelViewSet):
     """
     Permite consultar y administrar los productos
@@ -351,6 +429,70 @@ def home_view(request):
     )
 
 
+@login_required
+def mis_solicitudes_web_view(request):
+    """
+Muestra todas las solicitudes realizadas
+por la institución que inició sesión.
+    """
+
+
+    if not hasattr(request.user, "perfil"):
+        return redirect("/")
+
+    if request.user.perfil.rol != Perfil.Rol.INSTITUCION:
+        return redirect("/")
+
+    solicitudes = (
+    Solicitud.objects
+    .filter(user=request.user)
+    .prefetch_related("items__insumo")
+    .order_by("-created_at")
+)
+
+    datos_solicitudes = []
+
+    for solicitud in solicitudes:
+
+        items = []
+        total = 0
+
+        for item in solicitud.items.all():
+
+            subtotal = item.quantity * item.unit_price
+
+            items.append({
+                "insumo": item.insumo,
+                "quantity": item.quantity,
+                "unit_price": item.unit_price,
+                "subtotal": subtotal,
+            })
+
+            total += subtotal
+
+        datos_solicitudes.append({
+            "solicitud": solicitud,
+            "items": items,
+            "total": total,
+    })
+
+    print("SOLICITUDES ENVIADAS AL TEMPLATE:", len(datos_solicitudes))
+
+    for dato in datos_solicitudes:
+        print("ENVIANDO:", dato["solicitud"].id)
+
+    return render(
+        request,
+        "farmacia/mis_solicitudes.html",
+        {
+            "solicitudes": datos_solicitudes,
+        }
+    )
+
+
+
+
+
 def insumos_view(request):
     """
     Obtiene los insumos registrados en la base de datos
@@ -394,6 +536,59 @@ def carrito_view(request):
 def logout_view(request):
     logout(request)
     return redirect("/")
+
+
+def registro_view(request):
+    """
+    Permite registrar una nueva institución.
+
+    Todo usuario registrado desde esta página recibe
+    automáticamente el rol INSTITUCION.
+    """
+
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        if not username or not password:
+            return render(
+                request,
+                "farmacia/registro.html",
+                {
+                    "error": "Debes completar todos los campos."
+                }
+            )
+
+        from django.contrib.auth.models import User
+
+        if User.objects.filter(username=username).exists():
+            return render(
+                request,
+                "farmacia/registro.html",
+                {
+                    "error": "Ese usuario ya existe."
+                }
+            )
+
+        user = User.objects.create_user(
+            username=username,
+            password=password
+        )
+
+        Perfil.objects.create(
+            user=user,
+            rol=Perfil.Rol.INSTITUCION
+        )
+
+        login(request, user)
+
+        return redirect("/")
+
+    return render(
+        request,
+        "farmacia/registro.html"
+    )
+
 
 def login_view(request):
     """
@@ -702,4 +897,160 @@ def pago_view(request, solicitud_id):
         {
             "solicitud": solicitud
         }
+    )
+
+
+@login_required
+def gestor_view(request):
+    """
+Muestra el panel de gestión de insumos y solicitudes.
+
+    ```
+Solo los usuarios con rol GESTOR pueden acceder.
+    """
+
+    if not hasattr(request.user, "perfil"):
+        return redirect("/")
+
+    if request.user.perfil.rol != Perfil.Rol.GESTOR:
+        return redirect("/")
+
+    insumos = Insumo.objects.select_related("category").all()
+
+    solicitudes = Solicitud.objects.select_related("user").prefetch_related(
+        "items__insumo"
+    ).order_by("-created_at")
+
+    return render(
+    request,
+    "farmacia/gestor.html",
+    {
+        "insumos": insumos,
+        "solicitudes": solicitudes,
+        "estados_solicitud": Solicitud.Estado.choices
+    }
+)
+
+
+
+
+@login_required
+def crear_insumo_view(request):
+    """
+    Permite al gestor crear un nuevo insumo desde la interfaz web.
+    """
+
+    if not hasattr(request.user, "perfil"):
+        return redirect("/")
+
+    if request.user.perfil.rol != Perfil.Rol.GESTOR:
+        return redirect("/")
+
+    categories = Category.objects.all()
+
+    if request.method == "POST":
+        commercial_name = request.POST.get("commercial_name")
+        active_ingredient = request.POST.get("active_ingredient")
+        lot = request.POST.get("lot")
+        expiration_date = request.POST.get("expiration_date")
+        unit_price_per_box = request.POST.get("unit_price_per_box")
+        stock = request.POST.get("stock")
+        tipo = request.POST.get("tipo")
+        category_id = request.POST.get("category")
+
+        Insumo.objects.create(
+            commercial_name=commercial_name,
+            active_ingredient=active_ingredient,
+            lot=lot,
+            expiration_date=expiration_date,
+            unit_price_per_box=unit_price_per_box,
+            stock=stock,
+            tipo=tipo,
+            category_id=category_id
+        )
+
+        return redirect("/gestor/")
+
+    return render(
+        request,
+        "farmacia/crear_insumo.html",
+        {
+            "categories": categories,
+            "tipos": Insumo.TipoInsumo.choices
+        }
+    )
+
+
+@login_required
+def editar_insumo_view(request, insumo_id):
+    """
+Permite al gestor editar un insumo existente.
+    """
+
+    if not hasattr(request.user, "perfil"):
+        return redirect("/")
+
+    if request.user.perfil.rol != Perfil.Rol.GESTOR:
+        return redirect("/")
+
+    insumo = Insumo.objects.get(id=insumo_id)
+    categories = Category.objects.all()
+
+    if request.method == "POST":
+
+        insumo.commercial_name = request.POST.get("commercial_name")
+        insumo.active_ingredient = request.POST.get("active_ingredient")
+        insumo.lot = request.POST.get("lot")
+        insumo.expiration_date = request.POST.get("expiration_date")
+        insumo.unit_price_per_box = request.POST.get("unit_price_per_box")
+        insumo.stock = request.POST.get("stock")
+        insumo.tipo = request.POST.get("tipo")
+        insumo.category_id = request.POST.get("category")
+
+        insumo.save()
+
+        return redirect("/gestor/")
+
+    return render(
+    request,
+    "farmacia/editar_insumo.html",
+    {
+        "insumo": insumo,
+        "categories": categories,
+        "tipos": Insumo.TipoInsumo.choices
+    }
+)
+
+
+@login_required
+def eliminar_insumo_view(request, insumo_id):
+    """
+Permite al gestor eliminar un insumo existente.
+    """
+
+
+    if not hasattr(request.user, "perfil"):
+        return redirect("/")
+
+    if request.user.perfil.rol != Perfil.Rol.GESTOR:
+        return redirect("/")
+
+    insumo = Insumo.objects.get(id=insumo_id)
+
+    if request.method == "POST":
+        insumo.delete()
+
+    return redirect("/gestor/")
+
+
+def error_404_view(request, exception):
+    """
+    Muestra una página personalizada cuando
+    el usuario intenta acceder a una URL inexistente.
+    """
+
+    return render(
+        request,
+        "farmacia/404.html",
+        status=404
     )
