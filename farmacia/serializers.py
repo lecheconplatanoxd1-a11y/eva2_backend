@@ -33,6 +33,7 @@ class ItemCarroSerializer(serializers.ModelSerializer):
     class Meta:
         model = ItemCarro
         fields = "__all__"
+        read_only_fields = ["carro"]
 
 
 class CarroSerializer(serializers.ModelSerializer):

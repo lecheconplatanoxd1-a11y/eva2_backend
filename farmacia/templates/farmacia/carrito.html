@@ -1,0 +1,166 @@
+{% extends "farmacia/base.html" %}
+
+{% block title %}Carrito - Farmacia{% endblock %}
+
+{% block content %}
+
+<h1 class="mb-4">Mi Carrito</h1>
+
+{% if items %}
+
+<div class="table-responsive">
+
+```
+<table class="table table-bordered table-hover bg-white align-middle">
+
+    <thead class="table-primary">
+        <tr>
+            <th>Insumo</th>
+            <th>Precio unitario</th>
+            <th>Cantidad</th>
+            <th>Total</th>
+            <th>Acción</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        {% for item in items %}
+
+        <tr>
+
+            <td>
+                {{ item.insumo.commercial_name }}
+            </td>
+
+            <td>
+                ${{ item.insumo.unit_price_per_box }}
+            </td>
+
+            <td>
+
+                <form
+                    method="post"
+                    action="/carrito/actualizar/{{ item.id }}/"
+                    class="d-flex gap-2"
+                >
+
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        name="accion"
+                        value="restar"
+                        class="btn btn-outline-secondary"
+                    >
+                        −
+                    </button>
+
+                    <input
+                        type="number"
+                        name="quantity"
+                        value="{{ item.quantity }}"
+                        min="1"
+                        class="form-control text-center"
+                        style="width: 80px;"
+                    >
+
+                    <button
+                        type="submit"
+                        name="accion"
+                        value="sumar"
+                        class="btn btn-outline-secondary"
+                    >
+                        +
+                    </button>
+
+                </form>
+
+            </td>
+
+            <td>
+                ${{ item.insumo.unit_price_per_box|floatformat:2 }}
+                × {{ item.quantity }}
+            </td>
+
+            <td>
+
+                <form
+                    method="post"
+                    action="/carrito/eliminar/{{ item.id }}/"
+                >
+
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-danger btn-sm"
+                    >
+                        Eliminar
+                    </button>
+
+                </form>
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+```
+
+</div>
+
+<div class="mt-4 d-flex gap-2">
+
+```
+<a
+    href="/insumos/"
+    class="btn btn-secondary"
+>
+    Seguir comprando
+</a>
+
+<form
+    method="post"
+    action="/carrito/confirmar/"
+>
+
+    {% csrf_token %}
+
+    <button
+        type="submit"
+        class="btn btn-success"
+    >
+        Confirmar solicitud
+    </button>
+
+</form>
+```
+
+</div>
+
+{% else %}
+
+<div class="alert alert-info">
+    Tu carrito está vacío.
+</div>
+
+<a
+href="/insumos/"
+class="btn btn-primary"
+
+>
+
+```
+Ver catálogo
+```
+
+</a>
+
+{% endif %}
+
+{% endblock %}

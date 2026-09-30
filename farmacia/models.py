@@ -98,6 +98,11 @@ class Solicitud(models.Model):
         ENTREGADO = "ENTREGADO", "Entregado"
         CANCELADO = "CANCELADO", "Cancelado"
 
+    class MetodoPago(models.TextChoices):
+        TRANSFERENCIA = "TRANSFERENCIA", "Transferencia bancaria"
+        TARJETA = "TARJETA", "Tarjeta de crédito/débito"
+        ORDEN_COMPRA = "ORDEN_COMPRA", "Orden de compra institucional"
+
     user = models.ForeignKey(
         "auth.User",
         on_delete=models.PROTECT,
@@ -108,6 +113,13 @@ class Solicitud(models.Model):
         max_length=20,
         choices=Estado.choices,
         default=Estado.PENDIENTE
+    )
+
+    metodo_pago = models.CharField(
+        max_length=20,
+        choices=MetodoPago.choices,
+        blank=True,
+        null=True
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

@@ -1,0 +1,93 @@
+{% extends "farmacia/base.html" %}
+
+{% block title %}Catálogo - Farmacia{% endblock %}
+
+{% block content %}
+
+<h1 class="mb-4">Catálogo de Insumos Médicos</h1>
+
+<div class="row g-4">
+
+```
+{% for insumo in insumos %}
+
+<div class="col-md-4">
+
+    <div class="card h-100 shadow-sm">
+
+        <div class="card-body">
+
+            <h5 class="card-title">
+                {{ insumo.commercial_name }}
+            </h5>
+
+            <p class="card-text">
+                <strong>Tipo:</strong>
+                {{ insumo.get_tipo_display }}
+            </p>
+
+            <p class="card-text">
+                <strong>Principio activo:</strong>
+                {{ insumo.active_ingredient|default:"No especificado" }}
+            </p>
+
+            <p class="card-text">
+                <strong>Precio por caja:</strong>
+                ${{ insumo.unit_price_per_box }}
+            </p>
+
+            <p class="card-text">
+                <strong>Stock:</strong>
+                {{ insumo.stock }}
+            </p>
+
+            <p class="card-text">
+                <strong>Vencimiento:</strong>
+                {{ insumo.expiration_date }}
+            </p>
+
+            {% if user.is_authenticated %}
+
+            <form
+                method="post"
+                action="/carrito/agregar/{{ insumo.id }}/"
+            >
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="btn btn-primary w-100"
+                >
+                    Agregar al carrito
+                </button>
+            </form>
+
+            {% else %}
+
+            <a
+                href="/login/"
+                class="btn btn-outline-primary w-100"
+            >
+                Iniciar sesión para comprar
+            </a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% empty %}
+
+<div class="alert alert-warning">
+    No existen insumos registrados.
+</div>
+
+{% endfor %}
+```
+
+</div>
+
+{% endblock %}

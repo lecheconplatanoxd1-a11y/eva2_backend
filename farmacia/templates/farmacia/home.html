@@ -1,0 +1,68 @@
+{% extends "farmacia/base.html" %}
+
+{% block title %}Inicio - Farmacia{% endblock %}
+
+{% block content %}
+
+<div class="text-center mb-5">
+    <h1 class="display-5 fw-bold">Farmacia de Insumos Médicos</h1>
+
+```
+<p class="lead">
+    Sistema de gestión de pedidos de insumos médicos
+    para instituciones de salud.
+</p>
+
+<a href="/insumos/" class="btn btn-primary">
+    Ver catálogo
+</a>
+```
+
+</div>
+
+<div class="row g-4">
+
+```
+<div class="col-md-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Insumos médicos</h5>
+
+            <p class="card-text">
+                Consulta los insumos disponibles,
+                sus precios y stock.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Carrito</h5>
+
+            <p class="card-text">
+                Agrega productos al carrito
+                antes de confirmar una solicitud.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Solicitudes</h5>
+
+            <p class="card-text">
+                Consulta el historial de solicitudes
+                realizadas por la institución.
+            </p>
+        </div>
+    </div>
+</div>
+```
+
+</div>
+
+{% endblock %}

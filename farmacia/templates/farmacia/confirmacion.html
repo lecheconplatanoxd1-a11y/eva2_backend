@@ -1,0 +1,49 @@
+{% extends "farmacia/base.html" %}
+
+{% block title %}Solicitud confirmada - Farmacia{% endblock %}
+
+{% block content %}
+
+<div class="text-center">
+
+```
+<div class="alert alert-success">
+
+    <h1 class="mb-3">
+        Solicitud confirmada
+    </h1>
+
+    <p class="lead">
+        La solicitud fue registrada correctamente.
+    </p>
+
+    <p>
+        Número de solicitud:
+        <strong>#{{ solicitud.id }}</strong>
+    </p>
+
+    <p>
+        Estado:
+        <strong>{{ solicitud.get_estado_display }}</strong>
+    </p>
+
+</div>
+
+<a
+    href="/insumos/"
+    class="btn btn-primary"
+>
+    Volver al catálogo
+</a>
+
+<a
+    href="/"
+    class="btn btn-secondary"
+>
+    Ir al inicio
+</a>
+```
+
+</div>
+
+{% endblock %}
